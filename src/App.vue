@@ -2,6 +2,16 @@
 // import HelloWorld from './components/HelloWorld.vue'
 // import reportReview from './components/report-review/index.vue'
 import jumpReview from './components/jump-review/index.vue'
+import { watchEffect, onMounted } from 'vue'
+
+// watchEffect(() => {
+  
+// })
+
+onMounted(() => {
+  console.log('globalConfig', window.globalConfig)
+})
+
 </script>
 
 <template>

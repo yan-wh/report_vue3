@@ -12,8 +12,9 @@
                     :block-scroll="false" 
                     :z-index="10"
                 >
-                    <template #title>
-                        <span>查看报告</span>
+                    <template #header>
+                        <div v-show="!noReport" style="font-size: 20px;">查看报告</div>
+                        <div v-show="noReport" style="color: red; font-size: 20px;">该人员下无对应的体检报告！</div>
                     </template>
                     <div class="modal-content">
                         <div class="report-content" style="margin-top: 20px; border: 1px solid rgb(231, 231, 231);">
@@ -90,6 +91,7 @@ const canvasPageRefs = reactive({})
 
 // 报告列表
 const list = ref([]);
+const noReport = ref(false)
 
 const deviceWidth = document.documentElement.clientWidth;
 
@@ -149,6 +151,9 @@ async function searchReport(idCard) {
             })
             
             console.log('res--', res)
+            if (!res.data.data?.content) {
+                noReport.value = true
+            }
             list.value = res.data.data.content || []
         } catch (error) {
             console.log(error)

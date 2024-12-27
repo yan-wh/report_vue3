@@ -1,7 +1,7 @@
 import { createApp, provide, reactive } from 'vue'
 import './style.css'
 import App from './App.vue'
-// import { plugin } from './puugins/index.js'
+import { plugin } from './puugins/index.js'
 
 const app = createApp(App);
 
@@ -28,9 +28,7 @@ const app = createApp(App);
 
 // setupGlobalConfig()
 
-// provide('config', config);
 
-
-// app.use(plugin);
+app.use(plugin);
 
 app.mount('#app')

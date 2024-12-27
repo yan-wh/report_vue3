@@ -9,6 +9,9 @@ export default defineConfig({
       '@': '/src'
     }
   },
+  build: {
+    outDir: './web/dist'
+  }
   // 配置代理
   // server: {
   //   proxy: {

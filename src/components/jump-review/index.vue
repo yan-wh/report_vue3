@@ -14,8 +14,31 @@
                 >
                     <template #header>
                         <div v-show="!noReport" style="font-size: 20px;">查看报告</div>
-                        <div v-show="noReport" style="color: red; font-size: 20px;">该人员下无对应的体检报告！</div>
+                        <div v-show="noReport" style="color: red; font-size: 20px;">该人员下无对应的体检报告，请核实人员或联系体检科！</div>
                     </template>
+                    <div class="form" v-show="noParam">
+                        <n-form ref="formRef" :model="modelRef" size="large" label-placement="left"
+                            label-align="left">
+                            <n-form-item path="idCard" label="证件号码" :label-props="formLabelStyle">
+                                <n-input v-model:value="modelRef.idCard" @keydown.enter.prevent />
+                            </n-form-item>
+                            <div style="width: 100%" v-show="showWarning">
+                                <span style="color: red; font-size: 18px;">该证件号码无对应的体检报告，请核实证件号码或联系体检科工作人员。</span>
+                            </div>
+                            <div style="width: 100%; margin-top: 25px;">
+                                <n-flex vertical style="width: 100%;">
+                                    <n-button :disabled="modelRef.age === null" type="primary"
+                                        style="width: 50%; margin: auto;" @click="searchReportFromIdCard">
+                                        查询
+                                    </n-button>
+                                    <n-button :disabled="modelRef.age === null" type="primary"
+                                        style="width: 50%; margin: auto; margin-top: 10px;" @click="handleClearForm">
+                                        清空
+                                    </n-button>
+                                </n-flex>
+                            </div>
+                        </n-form>
+                    </div>
                     <div class="modal-content">
                         <div class="report-content" style="margin-top: 20px; border: 1px solid rgb(231, 231, 231);">
                             <n-list hoverable clickable class="report-list">
@@ -92,6 +115,8 @@ const canvasPageRefs = reactive({})
 // 报告列表
 const list = ref([]);
 const noReport = ref(false)
+const noParam = ref(false)
+const showWarning = ref(false)
 
 const deviceWidth = document.documentElement.clientWidth;
 
@@ -135,6 +160,43 @@ onBeforeMount(async () => {
     }
 });
 
+const searchReportFromIdCard = (e) => {
+    e.preventDefault();
+    formRef.value?.validate(async(errors) => {
+        console.log('errors', errors)
+        if (!errors) {
+            message.success("验证成功");
+            try {
+                const res = await axios.request({
+                    baseURL: configs.baseUrl.url,
+                    url: `/peis/examReport/applet/list`,
+                    method: 'GET',
+                    params: { page: 1, size: 10, idCard: modelRef.value.idCard },
+                    // headers: {
+                    //     'auth': true// 需要认证，通过
+                    // }
+                })
+                if (res.data.data?.content) {
+                    showWarning.value = false
+                } else {
+                    showWarning.value = true
+                }
+                // console.log('res--', res)
+                list.value = res.data.data.content || []
+            } catch (error) {
+                console.log(error)
+                showWarning.value = true
+                if (Array.isArray(error)) {
+                    message.warning('请按要求完成填写')
+                }
+            }
+        } else {
+            console.log(errors);
+            message.error("验证失败");
+        }
+    })
+}
+
 async function searchReport(idCard) {
     const isViable = /(^\d{18}$)|(^\d{15}$)/.test(idCard)
     if (isViable) {
@@ -149,13 +211,19 @@ async function searchReport(idCard) {
                 //     'auth': true// 需要认证，通过
                 // }
             })
-            
+            if (res.data.data?.content) {
+                showWarning.value = false
+            } else {
+                showWarning.value = true
+            }
             console.log('res--', res)
             if (!res.data.data?.content) {
                 noReport.value = true
             }
             list.value = res.data.data.content || []
         } catch (error) {
+            showWarning.value = true
+            noReport.value = true
             console.log(error)
         }
     }
@@ -331,12 +399,14 @@ watchEffect(() => {
         const queryString = window.location.search;
         const urlParams = new URLSearchParams(queryString);
         const idCard = urlParams.get('idCard');
+        showModal.value = true
         if (idCard) {
             if (configs.baseUrl) {
                 console.log('configs--', configs)
-                showModal.value = true
                 searchReport(idCard)
             }
+        } else {
+            noParam.value = true
         }
     }
 })

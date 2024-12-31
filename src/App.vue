@@ -1,7 +1,7 @@
 <script setup>
 // import HelloWorld from './components/HelloWorld.vue'
-import reportReview from './components/report-review/index.vue'
-// import jumpReview from './components/jump-review/index.vue'
+// import reportReview from './components/report-review/index.vue'
+import jumpReview from './components/jump-review/index.vue'
 
 </script>
 
@@ -9,10 +9,10 @@ import reportReview from './components/report-review/index.vue'
   <div style="width: 100vw; height: 100vh; overflow-y: scroll;">
 
     <!-- 该组件是通过显示页面，用户自己点击按钮进行查询报告 -->
-    <reportReview />
+    <!-- <reportReview /> -->
 
     <!-- 该组件为直接通过路由参数进行跳转查报告，不显示布局页面 -->
-    <!-- <jumpReview /> -->
+    <jumpReview />
   </div>
   <!-- <div>
     <a href="https://vite.dev" target="_blank">

@@ -26,10 +26,10 @@
                         <p class="p">常用功能</p>
                     </div>
                     <div class="menu">
-                        <div class="menu-item" @click.stop="jumpToDetail('科室情况')">
+                        <div class="menu-item" @click.stop="jumpToDetail('科室简介')">
                             <div>
                                 <svg t="1735281731237" class="icon" viewBox="0 0 1077 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="11910" xmlns:xlink="http://www.w3.org/1999/xlink" width="auto" height="60%"><path d="M1044.210526 0H33.684211C13.473684 0 0 13.635368 0 34.115368s13.473684 34.169263 33.684211 34.169264h33.68421V614.4c0 75.075368 60.631579 136.515368 134.736842 136.515368H404.210526l-114.526315 204.8a36.271158 36.271158 0 0 0 13.473684 47.804632c13.473684 6.844632 33.684211 6.844632 47.157894-13.635368L485.052632 750.915368h148.210526l134.736842 232.124632c6.736842 13.635368 26.947368 20.48 47.157895 13.635368 13.473684-6.790737 20.210526-27.270737 13.473684-47.750736L700.631579 750.915368h175.157895c74.105263 0 134.736842-61.44 134.736842-136.515368V68.284632h33.68421c20.210526 0 33.684211-13.689263 33.684211-34.169264S1064.421053 0 1044.210526 0zM943.157895 614.4c0 40.96-26.947368 68.284632-67.368421 68.284632H202.105263c-40.421053 0-67.368421-27.324632-67.368421-68.284632V68.284632h808.421053V614.4z" fill="#1C4FCF" p-id="11911"></path><path d="M276.210526 505.155368l121.263158-122.88L565.894737 552.96c13.473684 13.635368 33.684211 13.635368 47.157895 0l282.947368-286.72a33.306947 33.306947 0 0 0 0-47.804632 32.282947 32.282947 0 0 0-47.157895 0l-262.736842 266.24L417.684211 314.044632a32.282947 32.282947 0 0 0-47.157895 0L229.052632 457.404632a33.306947 33.306947 0 0 0 0 47.750736c6.736842 13.689263 33.684211 13.689263 47.157894 0z" fill="#1C4FCF" p-id="11912"></path></svg>
-                                <p>科室情况</p>
+                                <p>科室简介</p>
                             </div>
                         </div>
                         <div class="menu-item" @click.stop="jumpToDetail('体检指引')">
@@ -143,7 +143,7 @@
                         <div style="width: 100%; height: 100%; overflow-y: auto;" v-show="jumpModalTitle === '体检指引'">
                             <img style="width: 100%;":src="configs.baseUrl.sourceUrl + guideImg.bannerPicture" />
                         </div>
-                        <div style="width: 100%; height: 100%; font-size: 18px; overflow-y: auto;" v-show="jumpModalTitle === '科室情况'">
+                        <div style="width: 100%; height: 100%; font-size: 18px; overflow-y: auto;" v-show="jumpModalTitle === '科室简介'">
                             <n-h3><div v-html="hospitalInfo.hospitalIntroduction"></div></n-h3>
                         </div>
                         <div style="width: 100%; height: 100%; font-size: 18px; overflow-y: auto;" v-show="jumpModalTitle === '体检须知'">

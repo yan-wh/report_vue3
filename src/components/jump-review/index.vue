@@ -153,7 +153,7 @@ const getFetchEnv = async () => {
 onBeforeMount(async () => {
     try {
         const fetchedConfig = await getFetchEnv();
-        console.log('fetchedConfig', fetchedConfig)
+        // console.log('fetchedConfig', fetchedConfig)
         Object.assign(configs, fetchedConfig);
     } catch (error) {
         console.error('Failed to load config:', error);
@@ -198,34 +198,30 @@ const searchReportFromIdCard = (e) => {
 }
 
 async function searchReport(idCard) {
-    const isViable = /(^\d{18}$)|(^\d{15}$)/.test(idCard)
-    if (isViable) {
-        message.success("验证成功")
-        try {
-            const res = await axios.request({
-                baseURL: configs.baseUrl.url,
-                url: `/peis/examReport/applet/list`,
-                method: 'GET',
-                params: { page: 1, size: 10, idCard: idCard },
-                // headers: {
-                //     'auth': true// 需要认证，通过
-                // }
-            })
-            if (res.data.data?.content) {
-                showWarning.value = false
-            } else {
-                showWarning.value = true
-            }
-            console.log('res--', res)
-            if (!res.data.data?.content) {
-                noReport.value = true
-            }
-            list.value = res.data.data.content || []
-        } catch (error) {
+    try {
+        const res = await axios.request({
+            baseURL: configs.baseUrl.url,
+            url: `/peis/examReport/applet/list`,
+            method: 'GET',
+            params: { page: 1, size: 10, idCard: idCard },
+            // headers: {
+            //     'auth': true// 需要认证，通过
+            // }
+        })
+        if (res.data.data?.content) {
+            showWarning.value = false
+        } else {
             showWarning.value = true
-            noReport.value = true
-            console.log(error)
         }
+        // console.log('res--', res)
+        if (!res.data.data?.content) {
+            noReport.value = true
+        }
+        list.value = res.data.data.content || []
+    } catch (error) {
+        showWarning.value = true
+        noReport.value = true
+        console.log(error)
     }
 }
 
@@ -252,7 +248,7 @@ function getReportData(item, type) {
     if(type === 'download') params.responseType = 'blob'
     return new Promise(async(resolve, reject) => {
         const res = await axios.request(params);
-        console.log('getReportData-res--', res)
+        // console.log('getReportData-res--', res)
         resolve(res.data)
         
     })
@@ -303,7 +299,7 @@ async function previewReport(item, e) {
         const loadingTask = await pdfjsLib.getDocument({url: fileURL, verbosity: 0}).promise;
         const pdf = loadingTask;
         const pageNums = pdf.numPages;
-        console.log('pageNums', pageNums);
+        // console.log('pageNums', pageNums);
         // numPages.value = pageNums;
 
         const reportPreview = document.querySelector('.report-preview');
@@ -329,7 +325,7 @@ async function previewReport(item, e) {
 }
 
 async function renderPage(pdf, pageNumber, canvas) {
-    console.log('pageNumber', pageNumber);
+    // console.log('pageNumber', pageNumber);
     try {
         const page = await pdf.getPage(pageNumber);
         const scale = 1.5;
@@ -402,7 +398,7 @@ watchEffect(() => {
         showModal.value = true
         if (idCard) {
             if (configs.baseUrl) {
-                console.log('configs--', configs)
+                // console.log('configs--', configs)
                 searchReport(idCard)
             }
         } else {

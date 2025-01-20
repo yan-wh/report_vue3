@@ -20,7 +20,7 @@
                         <n-form ref="formRef" :model="modelRef" size="large" label-placement="left"
                             label-align="left">
                             <n-form-item path="idCard" label="证件号码" :label-props="formLabelStyle">
-                                <n-input v-model:value="modelRef.idCard" @keydown.enter.prevent />
+                                <n-input v-model:value="modelRef.idCard" @keydown.enter.prevent placeholder="请输入证件号码" />
                             </n-form-item>
                             <div style="width: 100%" v-show="showWarning">
                                 <span style="color: red; font-size: 18px;">该证件号码无对应的体检报告，请核实证件号码或联系体检科工作人员。</span>
@@ -59,8 +59,8 @@
                                     <div class="item-bottom" style="margin-top: 15px;">
                                         <div class="item-bottom-left" style="font-size: 1.1rem;">{{item.createDatetime}}</div>
                                         <div class="item-bottom-right" style="display: flex; align-items: center; margin-top: 10px;">
-                                            <n-button type="secondary" @click.stop="previewReport(item)">预览报告</n-button>
-                                            <n-button type="secondary" style="margin-left: 5px;" @click.stop="downloadReport(item)">下载报告</n-button>
+                                            <n-button type="info" style="height: 50px;" @click.stop="previewReport(item)">预览报告</n-button>
+                                            <n-button type="info" style="margin-left: 5px; height: 50px;" @click.stop="downloadReport(item)">下载报告</n-button>
                                         </div>
                                     </div>
                                 </n-list-item>
@@ -238,14 +238,15 @@ function openSearchReportModal() {
 }
 
 function getReportData(item, type) {
-    let reportUrl = type === 'preview' ? true : false; // 这里应该是布尔值控制是否下载PDF
+    // let reportUrl = type === 'preview' ? true : false; // 这里应该是布尔值控制是否下载PDF
+    let reportUrl = true;
     const params = {
         baseURL: configs.baseUrl.url, 
         url: `/peis/examReport/applet/down/${item.peisNo}?reportUrl=${reportUrl}`,
         method: 'GET',
         params: {},
     }
-    if(type === 'download') params.responseType = 'blob'
+    // if(type === 'download') params.responseType = 'blob'
     return new Promise(async(resolve, reject) => {
         const res = await axios.request(params);
         // console.log('getReportData-res--', res)
@@ -360,7 +361,7 @@ function adjustCanvasWidth(canvas, pageNumber) {
 function downloadAndOpenPdf(pdfUrl, item) {
   var element = document.createElement('a');
   element.href = pdfUrl;
-  element.download = `${item.patientName}_${item.packageName}.pdf`;
+  element.download = `${item.patientName}_${item.sexName}_${item.age}.pdf`;
   document.body.appendChild(element);
   element.click();
   document.body.removeChild(element);
@@ -368,13 +369,39 @@ function downloadAndOpenPdf(pdfUrl, item) {
 
 async function downloadReport(item) {
   try {
-    const reportData = await getReportData(item, 'download')
+    // 首先判断当前环境是不是微信小程序环境
+    // 判断是否在微信小程序环境中
+    if (window.__wxjs_environment === 'miniprogram') {
+        console.log('当前环境是微信小程序');
+        const reportData = await getReportData(item, 'download')
+        // 调用小程序的方法
+        wx.miniProgram.postMessage({
+            data: {
+                patInfo: item,
+                pdfUrl: configs.baseUrl.sourceUrl + '/' + reportData.data.pdfUrl,
+            },
+        });
 
-    if (reportData instanceof Blob) {
-      const url = window.URL.createObjectURL(new Blob([reportData]));
-      downloadAndOpenPdf(url, item);
+        // 监听小程序发送的消息
+        // wx.miniProgram.onMessage(function (message) {
+        //     console.log('收到小程序的消息：', message);
+        // });
     } else {
-      console.error('Failed to fetch the PDF or the response is not a Blob.');
+        console.log('当前环境不是微信小程序');
+        const reportData = await getReportData(item, 'download')
+
+        // 针对微信打开查询报告页面，然后点击下载之后跳转之后下载报告
+        // （微信浏览器不支持Blob url下载pdf文件，也不支持Base64 url下载pdf文件）
+        // 微信浏览器对 Base64 数据 URL 的处理方式是直接在当前页面中打开或下载，而不会触发跳转到外部浏览器。但是使用 Base64 url 又不能触发微信浏览器下载文件，所以点击下载没有任何反应
+        downloadAndOpenPdf(configs.baseUrl.sourceUrl + '/' + reportData.data.pdfUrl, item);
+
+
+        // if (reportData instanceof Blob) {
+        //   const url = window.URL.createObjectURL(new Blob([reportData]));
+        //   downloadAndOpenPdf(url, item);
+        // } else {
+        //   console.error('Failed to fetch the PDF or the response is not a Blob.');
+        // }
     }
   } catch (error) {
     console.error('Error fetching the PDF:', error);

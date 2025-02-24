@@ -371,29 +371,38 @@ async function downloadReport(item) {
   try {
     // 首先判断当前环境是不是微信小程序环境
     // 判断是否在微信小程序环境中
-    if (window.__wxjs_environment === 'miniprogram') {
-        console.log('当前环境是微信小程序');
+    // if (window.__wxjs_environment === 'miniprogram') {
+    const isWeChat = /MicroMessenger/i.test(navigator.userAgent);
+    message.info('正在下载报告，请稍候...');
+    if (isWeChat) {
+        console.log('当前是微信浏览器环境');
         const reportData = await getReportData(item, 'download')
         // 调用小程序的方法
-        wx.miniProgram.postMessage({
-            data: {
-                patInfo: item,
-                pdfUrl: configs.baseUrl.sourceUrl + '/' + reportData.data.pdfUrl,
-            },
-        });
+        // wx.miniProgram.postMessage({
+        //     data: {
+        //         patInfo: item,
+        //         pdfUrl: configs.baseUrl.sourceUrl + '/' + reportData.data.pdfUrl,
+        //     },
+        // });
+
+        // 在微信环境中H5只能打开文件，微信小程序中可下载和打开文件
+        // 松桃这边的报告查询H5页面比较特殊，sourceUrl为：https://peis.stxrmyy.org.cn:8889/res，此处的 /res 是跳转到 http://192.168.0.33:9000/ ，所以此处的sourceUrl和pdfUrl之间不需要再加斜杠 /
+        window.location.href = configs.baseUrl.sourceUrl + reportData.data.pdfUrl; // 松桃
+        // window.location.href = configs.baseUrl.sourceUrl + '/' + reportData.data.pdfUrl; // 其它
 
         // 监听小程序发送的消息
         // wx.miniProgram.onMessage(function (message) {
         //     console.log('收到小程序的消息：', message);
         // });
     } else {
-        console.log('当前环境不是微信小程序');
+        console.log('当前不是微信浏览器环境');
         const reportData = await getReportData(item, 'download')
 
         // 针对微信打开查询报告页面，然后点击下载之后跳转之后下载报告
         // （微信浏览器不支持Blob url下载pdf文件，也不支持Base64 url下载pdf文件）
         // 微信浏览器对 Base64 数据 URL 的处理方式是直接在当前页面中打开或下载，而不会触发跳转到外部浏览器。但是使用 Base64 url 又不能触发微信浏览器下载文件，所以点击下载没有任何反应
-        downloadAndOpenPdf(configs.baseUrl.sourceUrl + '/' + reportData.data.pdfUrl, item);
+        downloadAndOpenPdf(configs.baseUrl.sourceUrl + reportData.data.pdfUrl, item); // 松桃
+        // downloadAndOpenPdf(configs.baseUrl.sourceUrl + '/' + reportData.data.pdfUrl, item); // 其它
 
 
         // if (reportData instanceof Blob) {

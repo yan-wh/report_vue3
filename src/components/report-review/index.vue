@@ -513,8 +513,8 @@ onBeforeMount(async() => {
         if (!res.data.data?.content) {
             bannerList.value = []
         } else {
-            bannerList.value = res.data.data.content.filter(item => item.bannerTypeName === '图片' && item.seq !== 999)
-            guideImg.value = res.data.data.content.find(i => i.seq === 999)
+            bannerList.value = res.data.data.content.filter(item => item.bannerPicture && item.seq !== 999)
+            guideImg.value = res.data.data.content.find(i => i.seq === 999) || {}
             // console.log('bannerList.value', bannerList.value)
         }
     } catch (error) {

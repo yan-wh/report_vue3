@@ -401,11 +401,11 @@ async function previewReport(item, e) {
     try {
         const loadingTask = await pdfjsLib.getDocument({url: fileURL, verbosity: 0}).promise;
         const pdf = loadingTask;
-        const numPages = pdf.numPages;
-        console.log('numPages', numPages);
-        numPages.value = numPages;
+        const pageCount = pdf.numPages;
+        console.log('pageCount', pageCount);
+        numPages.value = pageCount;
 
-        for (let i = 1; i <= numPages; i++) {
+        for (let i = 1; i <= pageCount; i++) {
             const canvas = document.createElement('canvas');
             canvasPageRefs[i] = canvas;
             const reportPreview = document.querySelector('.report-preview');

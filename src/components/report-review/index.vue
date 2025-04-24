@@ -183,9 +183,9 @@
             </div>
         </div>
         <div class="report-preview">
-            <div v-for="page in numPages" :key="page" class="pdf-page">
+            <!-- <div v-for="page in numPages" :key="page" class="pdf-page">
                 <canvas :ref="`canvas-${page}`"></canvas>
-            </div>
+            </div> -->
             <div style="position: fixed; bottom: 10%; left: 50%; transform: translateX(-50%);" v-show="showCloseBtn">
                 <n-button type="primary" style="width: 120px; height: 50px;" @click="closePreview">关闭</n-button>
             </div>
@@ -199,6 +199,7 @@
 <script setup>
 import { ref, inject, onMounted, computed, reactive, nextTick, onBeforeMount } from 'vue'
 import axios from "axios"
+import utils from '@/utils'
 // import bgDataurl from '@/assets/bg.dataurl?raw'
 import { NModal, NList, NListItem, NForm, NFormItem, NInput, NFlex, NButton, NCarousel, NH2, NH3, NIcon, createDiscreteApi } from 'naive-ui'
 
@@ -312,6 +313,16 @@ function searchReport(e) {
                 }
                 // console.log('res--', res)
                 list.value = res.data.data.content || []
+
+                // // 针对加密的数据解密
+                // const transformRes = utils.decryptResponse(res.data)
+                // if (transformRes.data?.content) {
+                //     showWarning.value = false
+                // } else {
+                //     showWarning.value = true
+                // }
+                // console.log('transformRes--', transformRes)
+                // list.value = transformRes.data.content || []
             } catch (error) {
                 console.log(error)
                 showWarning.value = true
@@ -339,17 +350,18 @@ function openSearchReportModal() {
 }
 
 function getReportData(item, type) {
-    let reportUrl = type === 'preview' ? true : false; // 这里应该是布尔值控制是否下载PDF
+    // let reportUrl = type === 'preview' ? true : false; // 这里应该是布尔值控制是否下载PDF
+    let reportUrl = true;
     const params = {
         baseURL: configs.baseUrl.url, 
         url: `/peis/examReport/applet/down/${item.peisNo}?reportUrl=${reportUrl}`,
         method: 'GET',
         params: {},
     }
-    if(type === 'download') params.responseType = 'blob'
+    // if(type === 'download') params.responseType = 'blob'
     return new Promise(async(resolve, reject) => {
         const res = await axios.request(params);
-        console.log('getReportData-res--', res)
+        // console.log('getReportData-res--', res)
         resolve(res.data)
         
     })
@@ -470,14 +482,52 @@ function downloadAndOpenPdf(pdfUrl, item) {
 
 async function downloadReport(item) {
   try {
-    const reportData = await getReportData(item, 'download')
+    // 首先判断当前环境是不是微信小程序环境
+    // 判断是否在微信小程序环境中
+    // if (window.__wxjs_environment === 'miniprogram') {
+    const isWeChat = /MicroMessenger/i.test(navigator.userAgent);
+    message.info('正在下载报告，请稍候...');
+    if (isWeChat) {
+        // message.info('当前是微信浏览器环境');
+        console.log('当前是微信浏览器环境');
+        const reportData = await getReportData(item, 'download')
+        // 调用小程序的方法
+        // wx.miniProgram.postMessage({
+        //     data: {
+        //         patInfo: item,
+        //         pdfUrl: configs.baseUrl.sourceUrl + '/' + reportData.data.pdfUrl,
+        //     },
+        // });
 
-    if (reportData instanceof Blob) {
-      const url = window.URL.createObjectURL(new Blob([reportData]));
-      showModal.value = false;
-      downloadAndOpenPdf(url, item);
+        // 在微信环境中H5只能打开文件，微信小程序中可下载和打开文件
+        // 松桃这边的报告查询H5页面比较特殊，sourceUrl为：https://peis.stxrmyy.org.cn:8889/res，此处的 /res 是跳转到 http://192.168.0.33:9000/ ，所以此处的sourceUrl和pdfUrl之间不需要再加斜杠 /
+        // window.location.href = configs.baseUrl.sourceUrl + reportData.data.pdfUrl; // 松桃
+        window.location.href = configs.baseUrl.sourceUrl + '/' + reportData.data.pdfUrl; // 其它
+
+        // 监听小程序发送的消息
+        // wx.miniProgram.onMessage(function (message) {
+        //     console.log('收到小程序的消息：', message);
+        // });
+        showModal.value = false;
     } else {
-      console.error('Failed to fetch the PDF or the response is not a Blob.');
+        console.log('当前不是微信浏览器环境');
+        // message.info('当前是普通浏览器环境');
+        const reportData = await getReportData(item, 'download')
+        
+        // 针对微信打开查询报告页面，然后点击下载之后跳转之后下载报告
+        // （微信浏览器不支持Blob url下载pdf文件，也不支持Base64 url下载pdf文件）
+        // 微信浏览器对 Base64 数据 URL 的处理方式是直接在当前页面中打开或下载，而不会触发跳转到外部浏览器。但是使用 Base64 url 又不能触发微信浏览器下载文件，所以点击下载没有任何反应
+        // downloadAndOpenPdf(configs.baseUrl.sourceUrl + reportData.data.pdfUrl, item); // 松桃
+        downloadAndOpenPdf(configs.baseUrl.sourceUrl + '/' + reportData.data.pdfUrl, item); // 其它
+
+        showModal.value = false;
+
+        // if (reportData instanceof Blob) {
+        //   const url = window.URL.createObjectURL(new Blob([reportData]));
+        //   downloadAndOpenPdf(url, item);
+        // } else {
+        //   console.error('Failed to fetch the PDF or the response is not a Blob.');
+        // }
     }
   } catch (error) {
     console.error('Error fetching the PDF:', error);
